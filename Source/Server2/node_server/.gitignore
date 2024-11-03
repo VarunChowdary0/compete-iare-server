@@ -40,6 +40,6 @@ dist/
 build/
 
 # Vercel
-.vercel
+# .vercel
 
 /node_modules
