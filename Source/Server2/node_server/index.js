@@ -1294,7 +1294,7 @@ app.post('/get_projects',(req,res)=>{
     const {RollNumber} = req.body;
     console.log(RollNumber);
     turso.execute({
-        sql: `SELECT Title,Description,Caption,P_id FROM Projects WHERE RollNumber = :RollNumber AND isDeleted = 0 ;`,
+        sql: `SELECT Title,Description,Caption,URL,P_id FROM Projects WHERE RollNumber = :RollNumber AND isDeleted = 0 ;`,
         args : { RollNumber }
     })
     .then((resp0)=>{
@@ -1351,7 +1351,7 @@ app.post('/get_internships',(req,res)=>{
     const {RollNumber} = req.body;
     console.log('---',RollNumber);
     turso.execute({
-        sql: `SELECT Title,Description,Caption,C_id FROM Certifications WHERE RollNumber = :RollNumber AND isDeleted = 0 ;`,
+        sql: `SELECT Title,Description,Caption,URL,C_id FROM Certifications WHERE RollNumber = :RollNumber AND isDeleted = 0 ;`,
         args : { RollNumber }
     })
     .then((resp0)=>{
