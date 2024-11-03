@@ -43,3 +43,4 @@ build/
 # .vercel
 
 /node_modules
+.vercel
