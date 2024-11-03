@@ -856,6 +856,22 @@ app.post('/update_user',(req,res)=>{
     })
 })
 
+const update_login = (RollNumber) => {
+    const currentDateTime = new Date().toISOString(); 
+    console.log('update-time:', RollNumber, currentDateTime);
+    
+    return turso.execute({
+        sql: `UPDATE LogIN_Stasts
+              SET lastLogin = :lastLogin
+              WHERE RollNumber = :RollNumber;`,
+        args: {
+            RollNumber,          
+            lastLogin: currentDateTime
+        }
+    });
+};
+
+
 app.post('/login',(req,res)=>{
     const {RollNumber,Password} = req.body;
     console.log(RollNumber,Password)
@@ -870,7 +886,15 @@ app.post('/login',(req,res)=>{
                 const currentDate = new Date();
                 const expireTime = new Date(currentDate.getTime() + 1 * 60 * 60 * 1000);
                 console.log(expireTime);
-    
+                console.log("-----------------------")
+                update_login(RollNumber)
+                .then((tyyp)=>{
+                    console.log(tyyp);
+                })
+                .catch((err99)=>{
+                    console.log(err99.message);
+                })
+                console.log("-----------------------")
                 console.log(RollNumber,"Logged IN");
                 res.status(200).json({'message':"Correct",'expire_time':expireTime});
     
@@ -892,20 +916,37 @@ app.post('/login',(req,res)=>{
 })
 
 const delete_user = (RollNumber) => {
-    turso.execute({
+   return turso.execute({
         sql: `DELETE FROM Student_Data WHERE RollNumber = :rollNo;`,
         args: { rollNo: RollNumber }
     })
-    .then((res)=>{
-        console.log('Deleted - ',RollNumber);
-    })
-    .catch((err)=>{
-        console.log(err.message);
-    })
+    // .then((res)=>{
+    //     console.log('Deleted - ',RollNumber);
+    // })
+    // .catch((err)=>{
+    //     console.log(err.message);
+    // })
 }
+
+app.post('/del_acc_imp',(req,res)=>{
+    const {RollNumber} = req.body;
+    console.log('Deleting.',RollNumber)
+    if(RollNumber.length > 0){
+        delete_user(RollNumber)
+        .then((resss)=>{
+            res.status(200);
+        })
+        .catch((err)=>{
+            console.log(err.message);
+            res.status(500);
+        })
+    }
+    res.status(500);
+})
 
 app.post('/register',(req,res)=>{
     const { RollNumber,Name,Department,leetcode,CodeChef,HackerRank,GfG,Password } = req.body;
+    console.log(leetcode,CodeChef,HackerRank,GfG)
     turso.execute({
         sql:`INSERT INTO Student_Data(RollNumber,Name,Department)
 	            VALUES (:rollNo,:name,:dept) ;`,
@@ -936,12 +977,14 @@ app.post('/register',(req,res)=>{
                             args:{roll:RollNumber,HackerRank:HackerRank.length===0?null:HackerRank}
                         })
                         .then((res3)=>{
-                            console.log("Leetcode Username added");
+                            console.log("HackerRank Username added");
                             turso.execute(
-                                `
-                                    INSERT INTO Users (RollNumber, Password)
-                                    VALUES  ('${RollNumber}', '${Password}');
-                                `
+                               {
+                                sql :  `
+                                INSERT INTO Users (RollNumber, Password)
+                                VALUES  (:RollNumber, :Password);
+                              `,args:{RollNumber,Password}
+                               }
                             )
                             .then((res001)=>{
                                 turso.execute({
@@ -950,42 +993,76 @@ app.post('/register',(req,res)=>{
                                     VALUES(:RollNumber);`,
                                     args:{RollNumber:RollNumber}
                                 })
-                                .then((res0038)=>{
-                                    console.log(RollNumber,'- Registration Completed');
-                                    res.status(200).json({'message':'OK'});
+                                .then((res0909)=>{
+                                    turso.execute({
+                                        sql:`INSERT INTO LogIN_Stasts(RollNumber)
+                                                    VALUES(:RollNumber);`,
+                                        args:{RollNumber}
+                                    })
+                                    .then((res0038)=>{
+                                        console.log(RollNumber,'- Registration Completed');
+                                        res.status(200).json({'message':'OK'});
+                                    })
+                                    .catch((er00303)=>{
+                                        console.log(er00303.message);
+                                        delete_user(RollNumber)
+                                        .catch((er345)=>{
+                                            console.log(er345.message);
+                                        })
+                                        res.status(400).json({'message':'Failed to create an Account, ,Please retry. 0'});
+                                    })
                                 })
                                 .catch((err0033)=>{
                                     console.log(err0033.message);
-                                    delete_user(RollNumber);
+                                    delete_user(RollNumber)
+                                    .catch((er345)=>{
+                                        console.log(er345.message);
+                                    })
                                     res.status(400).json({'message':'Failed to create an Account, ,Please retry.'});
                                 })
                             })
                             .catch((err003)=>{
-                                console.log(err003.message);
-                                delete_user(RollNumber);
-                                res.status(400).json({'message':'Failed to create an Account, ,Please retry.'});
+                                console.log("User adding failed",err003);
+                                console.log(err003);
+                                delete_user(RollNumber)
+                                .catch((er345)=>{
+                                    console.log(er345.message);
+                                })
+                                res.status(400).json({'message':'Failed to add HackerRank, ,Please retry. '});
                             })
                         })
                         .catch((er3)=>{
                             console.log(er3);
-                            delete_user(RollNumber);
-                            res.status(400).json({'message':'Failed to add HackerRank ,Please retry.'});
+                            delete_user(RollNumber)
+                            .catch((er345)=>{
+                                console.log(er345.message);
+                            })
+                            res.status(400).json({'message':'Failed to add HackerRank ,Please retry. '});
                         })                    })
                     .catch((er2)=>{
                         console.log(er2);
-                        delete_user(RollNumber);
+                        delete_user(RollNumber)
+                        .catch((er345)=>{
+                            console.log(er345.message);
+                        })
                         res.status(400).json({'message':'Failed to add CodeChef ,Please retry.'});
                     })                
                 })
                 .catch((er1)=>{
                     console.log(er1);
-                    delete_user(RollNumber);
+                    delete_user(RollNumber)
+                    .catch((er345)=>{
+                        console.log(er345.message);
+                    })
                     res.status(400).json({'message':'Failed to add GeekforGeeks ,Please retry.'});
                 })
             })
             .catch((er0)=>{
                 console.log(er0);
-                delete_user(RollNumber);
+                delete_user(RollNumber)
+                .catch((er345)=>{
+                    console.log(er345.message);
+                })
                 res.status(400).json({'message':'Failed to add LeetCode ,Please retry.'});
             })
         })
@@ -1377,6 +1454,25 @@ app.post('/delete_internship',(req,res)=>{
     .catch((err)=>{
         console.log(err.message);
         res.status(500).json(err.message);
+    })
+})
+
+app.post('/name',(req,res)=>{
+    const {roll} = req.body;
+    console.log(roll)
+    turso.execute({
+        sql:'SELECT Name FROM Student_Data WHERE RollNumber = :roll ;',
+        args :{roll}
+    })
+    .then((ro)=>{
+        if(ro.rows.length===0){
+            res.status(404).json([]);
+        }else{
+            res.status(200).json(ro.rows);
+        }
+    })
+    .catch((e4)=>{
+        res.status(500).json({'message':e4.message});
     })
 })
 
