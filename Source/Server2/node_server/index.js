@@ -1327,7 +1327,6 @@ app.post('/delete_prj',(req,res)=>{
 app.post('/add_internship',(req,res)=>{
     const {RollNumber,title,description,url,Caption} = req.body;
     const C_id = uuidv4();
-    // console.log(RollNumber,title,description,url,Caption);
 
     turso.execute({
         sql : `
