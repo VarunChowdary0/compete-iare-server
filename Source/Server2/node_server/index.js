@@ -843,7 +843,7 @@ app.post('/update_user',(req,res)=>{
                 failed = failed.concat('CodeChef No Account,');
                 console.log(RollNumber+"No CodeChef account ?")
             }
-
+            update_login(RollNumber);
             res.status(200).json({'failed':failed,'success':success,'message':'Completed'});
         }
         else{
@@ -886,15 +886,6 @@ app.post('/login',(req,res)=>{
                 const currentDate = new Date();
                 const expireTime = new Date(currentDate.getTime() + 1 * 60 * 60 * 1000);
                 console.log(expireTime);
-                console.log("-----------------------")
-                update_login(RollNumber)
-                .then((tyyp)=>{
-                    console.log(tyyp);
-                })
-                .catch((err99)=>{
-                    console.log(err99.message);
-                })
-                console.log("-----------------------")
                 console.log(RollNumber,"Logged IN");
                 res.status(200).json({'message':"Correct",'expire_time':expireTime});
     
@@ -1212,12 +1203,11 @@ app.post('/get_data_for_settings',(req,res)=>{
             P.RollNumber = :rollNumber;
     `, { rollNumber: RollNumber })
     .then((resp0)=>{
-        // console.log(resp0.rows);
         if(resp0.rows.length===1){
             res.status(200).json(resp0.rows);
         }
         else{
-            res.status(400).json({'message':'Multiple users found !'});
+            res.status(400).json({'message':'Multiple or No users found !'});
         }
     })
     .catch((Err)=>{
