@@ -11,7 +11,11 @@ const {v4: uuidv4 } = require('uuid');
 
 //
 
-app.use(cors());
+app.use(cors({
+    origin: ['https://compete-iare.vercel.app', 'http://localhost:3000'], // allow Vercel and localhost
+    methods: ['GET', 'POST'],
+  }));
+  
 app.use(express.json())
 app.use(morgan('dev'))
 
@@ -312,7 +316,7 @@ app.get("/update_all", (req, res) => {
 
 app.post("/get-user-data",(req,res)=>{
     const {roll} = req.body;
-    console.log(req.body)
+    console.log(roll)
     turso.execute(
         {
             sql:` 
@@ -521,7 +525,6 @@ app.get('/get-all-data',(req,res)=>{
         `
     )
     .then((eess)=>{
-        // console.log(eess.rows)
         res.status(200).json(eess.rows);
     })
     .catch((err)=>{
@@ -530,68 +533,68 @@ app.get('/get-all-data',(req,res)=>{
     })
 })
 
-app.get("/put_departments", (req, res) => {
-    const data = [
-        {
-            departmentCode: "CSE",
-            departmentName: "Computer Science and Engineering"
-        },
-        {
-            departmentCode: "IT",
-            departmentName: "Information Technology"
-        },
-        {
-            departmentCode: "CSIT",
-            departmentName: "Computer Science and Engineering & Information Technology"
-        },
-        {
-            departmentCode: "CSD",
-            departmentName: "Computer Science and Engineering Data Science"
-        },
-        {
-            departmentCode: "CSM",
-            departmentName: "Computer Science and Engineering (AI & ML)"
-        },
-        {
-            departmentCode: "CSC",
-            departmentName: "Computer Science and Engineering Cyber Security"
-        },
-        {
-            departmentCode: "ECE",
-            departmentName: "Electronics and Communication Engineering"
-        },
-        {
-            departmentCode: "EEE",
-            departmentName: "Electrical and Electronics Engineering"
-        },
-        {
-            departmentCode: "AE",
-            departmentName: "Aeronautical Engineering"
-        },
-        {
-            departmentCode: "ME",
-            departmentName: "Mechanical Engineering"
-        },
-        {
-            departmentCode: "CE",
-            departmentName: "Civil Engineering"
-        }
-    ];
+// app.get("/put_departments", (req, res) => {
+//     const data = [
+//         {
+//             departmentCode: "CSE",
+//             departmentName: "Computer Science and Engineering"
+//         },
+//         {
+//             departmentCode: "IT",
+//             departmentName: "Information Technology"
+//         },
+//         {
+//             departmentCode: "CSIT",
+//             departmentName: "Computer Science and Engineering & Information Technology"
+//         },
+//         {
+//             departmentCode: "CSD",
+//             departmentName: "Computer Science and Engineering Data Science"
+//         },
+//         {
+//             departmentCode: "CSM",
+//             departmentName: "Computer Science and Engineering (AI & ML)"
+//         },
+//         {
+//             departmentCode: "CSC",
+//             departmentName: "Computer Science and Engineering Cyber Security"
+//         },
+//         {
+//             departmentCode: "ECE",
+//             departmentName: "Electronics and Communication Engineering"
+//         },
+//         {
+//             departmentCode: "EEE",
+//             departmentName: "Electrical and Electronics Engineering"
+//         },
+//         {
+//             departmentCode: "AE",
+//             departmentName: "Aeronautical Engineering"
+//         },
+//         {
+//             departmentCode: "ME",
+//             departmentName: "Mechanical Engineering"
+//         },
+//         {
+//             departmentCode: "CE",
+//             departmentName: "Civil Engineering"
+//         }
+//     ];
 
-    const queries = data.map(department => {
-        return turso.execute(`INSERT INTO Departments (departmentCode, departmentName) VALUES (?, ?)`, 
-                             [department.departmentCode, department.departmentName]);
-    });
+//     const queries = data.map(department => {
+//         return turso.execute(`INSERT INTO Departments (departmentCode, departmentName) VALUES (?, ?)`, 
+//                              [department.departmentCode, department.departmentName]);
+//     });
 
-    Promise.all(queries)
-        .then(results => {
-            res.status(200).json({ message: "Departments inserted successfully", results });
-        })
-        .catch(error => {
-            console.log(error);
-            res.status(400).json({ error });
-        });
-});
+//     Promise.all(queries)
+//         .then(results => {
+//             res.status(200).json({ message: "Departments inserted successfully", results });
+//         })
+//         .catch(error => {
+//             console.log(error);
+//             res.status(400).json({ error });
+//         });
+// });
 
 app.get("/get-departments",(req,res)=>{
     turso.execute("SELECT * FROM Departments ;")
@@ -907,6 +910,7 @@ app.post('/login',(req,res)=>{
 })
 
 const delete_user = (RollNumber) => {
+    console.log(RollNumber)
    return turso.execute({
         sql: `DELETE FROM Student_Data WHERE RollNumber = :rollNo;`,
         args: { rollNo: RollNumber }
@@ -937,7 +941,7 @@ app.post('/del_acc_imp',(req,res)=>{
 
 app.post('/register',(req,res)=>{
     const { RollNumber,Name,Department,leetcode,CodeChef,HackerRank,GfG,Password } = req.body;
-    console.log(leetcode,CodeChef,HackerRank,GfG)
+    console.log(RollNumber,leetcode,CodeChef,HackerRank,GfG)
     turso.execute({
         sql:`INSERT INTO Student_Data(RollNumber,Name,Department)
 	            VALUES (:rollNo,:name,:dept) ;`,
@@ -1065,7 +1069,7 @@ app.post('/register',(req,res)=>{
 
 app.post('/update_password',(req,res)=>{
     const {RollNumber,old_,new_} = req.body;
-    // console.log(old_,new_);
+    console.log(RollNumber);
     turso.execute({
         sql:`SELECT * FROM Users WHERE RollNumber = (:RollNumber) ;`,
         args:{RollNumber:RollNumber}
@@ -1105,10 +1109,10 @@ app.post('/update_password',(req,res)=>{
 })
 app.post('/get_skills', (req, res) => {
     const { rollNumber } = req.body;
-    // console.log(rollNumber)
+    console.log(rollNumber)
 
     turso.execute({
-        sql: `SELECT Skill FROM Skills WHERE RollNumber = (:rollNumber);`,
+        sql: `SELECT Skill,Skill_Level,Skill_Type FROM Skills WHERE RollNumber = (:rollNumber);`,
         args: { rollNumber }
     })
     .then((result) => {
@@ -1122,15 +1126,16 @@ app.post('/get_skills', (req, res) => {
 });
 
 app.post('/add_skill', (req, res) => {
-    const { RollNumber, Skill } = req.body;
-    // console.log(RollNumber,Skill)
+    const { RollNumber, Skill, Skill_Level, Skill_Type } = req.body;
+    console.log(RollNumber, Skill, Skill_Level, Skill_Type);    
     if (!RollNumber || !Skill) {
         return res.status(400).json({ message: 'RollNumber and Skill are required.' });
     }
 
     turso.execute({
-        sql: `INSERT INTO Skills (RollNumber, Skill) VALUES (:rollNumber, :skill);`,
-        args: { rollNumber: RollNumber, skill: Skill }
+        sql: `INSERT INTO Skills (RollNumber, Skill, Skill_Level, Skill_Type)
+              VALUES (:RollNumber, :Skill, :Skill_Level, :Skill_Type);`,
+        args: { RollNumber, Skill, Skill_Level, Skill_Type }
     })
     .then(() => {
         res.status(201).json({ message: 'Skill added successfully.' });
@@ -1141,9 +1146,10 @@ app.post('/add_skill', (req, res) => {
     });
 });
 
+
 app.post('/remove_skill', (req, res) => {
     const { RollNumber, Skill } = req.body;
-
+    console.log(RollNumber,Skill )
     turso.execute({
         sql: `
             DELETE FROM Skills
@@ -1237,7 +1243,7 @@ app.post('/update_personal_data', (req, res) => {
         X 
     } = req.body;
 
-    console.log(MailAddress,About)
+    console.log(RollNumber,MailAddress,About)
 
     turso.execute({
         sql: `
@@ -1281,6 +1287,7 @@ app.post('/update_personal_data', (req, res) => {
 
 app.post('/update_usernames', (req, res) => {
     const { RollNumber, lc_username, cc_username, gfg_username, hrc_username } = req.body;
+    console.log(RollNumber)
     if (!RollNumber) {
         return res.status(400).json({ 'message': 'RollNumber is required' });
     }
@@ -1336,6 +1343,7 @@ app.post('/update_usernames', (req, res) => {
 
 app.post('/add_project',(req,res)=>{
     const {RollNumber,title,description,url,Caption} = req.body;
+    console.log(RollNumber)
     const P_id = uuidv4();
     // console.log(RollNumber,title,description,url,Caption);
 
@@ -1376,6 +1384,7 @@ app.post('/get_projects',(req,res)=>{
 
 app.post('/delete_prj',(req,res)=>{
     const {RollNumber,P_id} = req.body;
+    console.log(RollNumber)
     turso.execute({
         sql : `UPDATE Projects
                 SET isDeleted = 1
@@ -1394,6 +1403,7 @@ app.post('/delete_prj',(req,res)=>{
 app.post('/add_internship',(req,res)=>{
     const {RollNumber,title,description,url,Caption} = req.body;
     const C_id = uuidv4();
+    console.log(RollNumber)
 
     turso.execute({
         sql : `
@@ -1415,7 +1425,7 @@ app.post('/add_internship',(req,res)=>{
 
 app.post('/get_internships',(req,res)=>{
     const {RollNumber} = req.body;
-    console.log('---',RollNumber);
+    console.log(RollNumber);
     turso.execute({
         sql: `SELECT Title,Description,Caption,URL,C_id FROM Certifications WHERE RollNumber = :RollNumber AND isDeleted = 0 ;`,
         args : { RollNumber }
@@ -1432,6 +1442,7 @@ app.post('/get_internships',(req,res)=>{
 
 app.post('/delete_internship',(req,res)=>{
     const {RollNumber,C_id} = req.body;
+    console.log(RollNumber)
     turso.execute({
         sql : `UPDATE Certifications
                 SET isDeleted = 1
