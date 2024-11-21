@@ -13,8 +13,8 @@ const {v4: uuidv4 } = require('uuid');
 
 app.use(cors({
     origin: ['https://compete-iare.vercel.app'
-        // , 
-        // 'http://localhost:3000','http://localhost:3001'
+        // , 'http://localhost:3000'
+        ,'http://localhost:3001'
     ], // allow Vercel and localhost
     methods: ['GET', 'POST'],
   }));
@@ -451,7 +451,7 @@ app.get('/get-all-data',(req,res)=>{
 })
 
 const loader = () => {
-    console.log("Loaded");
+    console.log("Loaded",Date());
     return turso.execute(
         `
            SELECT 
@@ -557,7 +557,7 @@ setInterval(()=>{
     .then((eess)=>{
         allData.data = eess.rows;
     });
-},100000)
+}, 30*60*1000)
 
 app.get("/load",(req,res)=>{
     loader()
@@ -570,6 +570,7 @@ app.get("/load",(req,res)=>{
     })
     res.status(200).json(allData);
 })
+
 // app.get("/put_departments", (req, res) => {
 //     const data = [
 //         {
@@ -634,14 +635,61 @@ app.get("/load",(req,res)=>{
 // });
 
 app.get("/get-departments",(req,res)=>{
-    turso.execute("SELECT * FROM Departments ;")
-    .then((resp)=>{
-        res.status(200).json(resp.rows);
-    })
-    .catch((err)=>{
-        console.log(err);
-        res.status(400).json(err);
-    })
+        const data = [
+        {
+            departmentCode: "CSE",
+            departmentName: "Computer Science and Engineering"
+        },
+        {
+            departmentCode: "IT",
+            departmentName: "Information Technology"
+        },
+        {
+            departmentCode: "CSIT",
+            departmentName: "Computer Science and Engineering & Information Technology"
+        },
+        {
+            departmentCode: "CSD",
+            departmentName: "Computer Science and Engineering Data Science"
+        },
+        {
+            departmentCode: "CSM",
+            departmentName: "Computer Science and Engineering (AI & ML)"
+        },
+        {
+            departmentCode: "CSC",
+            departmentName: "Computer Science and Engineering Cyber Security"
+        },
+        {
+            departmentCode: "ECE",
+            departmentName: "Electronics and Communication Engineering"
+        },
+        {
+            departmentCode: "EEE",
+            departmentName: "Electrical and Electronics Engineering"
+        },
+        {
+            departmentCode: "AE",
+            departmentName: "Aeronautical Engineering"
+        },
+        {
+            departmentCode: "ME",
+            departmentName: "Mechanical Engineering"
+        },
+        {
+            departmentCode: "CE",
+            departmentName: "Civil Engineering"
+        }
+    ];
+    res.status(200).json(data);
+    // turso.execute("SELECT * FROM Departments ;")
+    // .then((resp)=>{
+    //     res.status(200).json(resp.rows);
+    // })
+    // .catch((err)=>{
+    //     console.log(err);
+    //     res.status(400).json(err);
+    // })
 })
 
 app.post('/addStudent',(req,res)=>{
