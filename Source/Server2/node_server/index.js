@@ -12,7 +12,10 @@ const {v4: uuidv4 } = require('uuid');
 //
 
 app.use(cors({
-    origin: ['https://compete-iare.vercel.app', 'http://localhost:3000'], // allow Vercel and localhost
+    origin: ['https://compete-iare.vercel.app'
+        // , 
+        // 'http://localhost:3000','http://localhost:3001'
+    ], // allow Vercel and localhost
     methods: ['GET', 'POST'],
   }));
   
@@ -27,6 +30,12 @@ let fails = {
     gfg : [],
     hrc : []
 }
+
+let allData = {
+    data : [],
+    last_update : null
+};
+
 const get_CodeChef = (username) => {
     console.log("CodeChef:",username);
     return axios.post(url + "test_url_cc", { username })
@@ -86,6 +95,7 @@ app.get('/lc_fakes',(req,res)=>{
     console.log(lc_fakes,fails)
     res.status(200).json({lc_fakes,fails});
 })
+
 const scrap_function = (usernames,idx) => {
     // Check if LeetCode username is not empty
     if (usernames.leetcode) {
@@ -353,14 +363,14 @@ app.post("/get-user-data",(req,res)=>{
     ( (COALESCE(gfg.Score, 0)) ) AS GFG_S,
     
     (
-            (COALESCE(hr.oneStarBadge, 0) * 1) +
-            (COALESCE(hr.twoStarBadge, 0) * 2) +
-            (COALESCE(hr.threeStarBadge, 0) * 3) +
-            (COALESCE(hr.fourStarBadge, 0) * 4) +
-            (COALESCE(hr.fiveStarBadge, 0) * 5) +
-            (COALESCE(hr.AdvancedCertifications, 0) * 7) +
-            (COALESCE(hr.IntermediateCertifications, 0) * 5) +
-            (COALESCE(hr.BasicCertifications, 0) * 3)
+            (COALESCE(hr.oneStarBadge, 0) * 8) +
+            (COALESCE(hr.twoStarBadge, 0) * 16) +
+            (COALESCE(hr.threeStarBadge, 0) * 28) +
+            (COALESCE(hr.fourStarBadge, 0) * 46) +
+            (COALESCE(hr.fiveStarBadge, 0) * 80) +
+            (COALESCE(hr.AdvancedCertifications, 0) * 50) +
+            (COALESCE(hr.IntermediateCertifications, 0) * 30) +
+            (COALESCE(hr.BasicCertifications, 0) * 10)
     ) AS HRC_S,
     (
        ( (COALESCE(lc.EasyProblemSolved, 0) * 1) +
@@ -370,14 +380,14 @@ app.post("/get-user-data",(req,res)=>{
         ((COALESCE(cc.Contests, 0) * 5) +
         (COALESCE(cc.ProblemSolved, 0)) )+
        ( (COALESCE(gfg.Score, 0))) +
-       ( (COALESCE(hr.oneStarBadge, 0) * 1) +
-        (COALESCE(hr.twoStarBadge, 0) * 2) +
-        (COALESCE(hr.threeStarBadge, 0) * 3) +
-        (COALESCE(hr.fourStarBadge, 0) * 4) +
-        (COALESCE(hr.fiveStarBadge, 0) * 5) +
-        (COALESCE(hr.AdvancedCertifications, 0) * 7) +
-        (COALESCE(hr.IntermediateCertifications, 0) * 5) +
-        (COALESCE(hr.BasicCertifications, 0) * 3))
+       ( (COALESCE(hr.oneStarBadge, 0) * 8) +
+        (COALESCE(hr.twoStarBadge, 0) * 16) +
+        (COALESCE(hr.threeStarBadge, 0) * 28) +
+        (COALESCE(hr.fourStarBadge, 0) * 46) +
+        (COALESCE(hr.fiveStarBadge, 0) * 80) +
+        (COALESCE(hr.AdvancedCertifications, 0) * 50) +
+        (COALESCE(hr.IntermediateCertifications, 0) * 30) +
+        (COALESCE(hr.BasicCertifications, 0) * 10))
     ) AS OverallScore,
     RANK() OVER (ORDER BY 
         (
@@ -387,14 +397,14 @@ app.post("/get-user-data",(req,res)=>{
             (COALESCE(cc.Contests, 0) * 5) +
             (COALESCE(cc.ProblemSolved, 0)) +
             (COALESCE(gfg.Score, 0)) +
-            (COALESCE(hr.oneStarBadge, 0) * 1) +
-            (COALESCE(hr.twoStarBadge, 0) * 2) +
-            (COALESCE(hr.threeStarBadge, 0) * 3) +
-            (COALESCE(hr.fourStarBadge, 0) * 4) +
-            (COALESCE(hr.fiveStarBadge, 0) * 5) +
-            (COALESCE(hr.AdvancedCertifications, 0) * 7) +
-            (COALESCE(hr.IntermediateCertifications, 0) * 5) +
-            (COALESCE(hr.BasicCertifications, 0) * 3)
+            (COALESCE(hr.oneStarBadge, 0) * 8) +
+            (COALESCE(hr.twoStarBadge, 0) * 16) +
+            (COALESCE(hr.threeStarBadge, 0) * 28) +
+            (COALESCE(hr.fourStarBadge, 0) * 46) +
+            (COALESCE(hr.fiveStarBadge, 0) * 80) +
+            (COALESCE(hr.AdvancedCertifications, 0) * 50) +
+            (COALESCE(hr.IntermediateCertifications, 0) * 30) +
+            (COALESCE(hr.BasicCertifications, 0) * 10)
         ) DESC
     ) AS rank
         FROM 
@@ -431,7 +441,18 @@ app.post("/get-user-data",(req,res)=>{
 })
 
 app.get('/get-all-data',(req,res)=>{
-    turso.execute(
+    if(allData.length === 0){
+        loader()
+        .then((eess)=>{
+            allData.data = eess.rows;
+        })
+    }
+    res.status(200).json(allData.data);
+})
+
+const loader = () => {
+    console.log("Loaded");
+    return turso.execute(
         `
            SELECT 
     sd.RollNumber AS RollUMN,
@@ -466,14 +487,14 @@ app.get('/get-all-data',(req,res)=>{
     ( (COALESCE(gfg.Score, 0)) ) AS GFG_S,
     
     (
-            (COALESCE(hr.oneStarBadge, 0) * 1) +
-            (COALESCE(hr.twoStarBadge, 0) * 2) +
-            (COALESCE(hr.threeStarBadge, 0) * 3) +
-            (COALESCE(hr.fourStarBadge, 0) * 4) +
-            (COALESCE(hr.fiveStarBadge, 0) * 5) +
-            (COALESCE(hr.AdvancedCertifications, 0) * 7) +
-            (COALESCE(hr.IntermediateCertifications, 0) * 5) +
-            (COALESCE(hr.BasicCertifications, 0) * 3)
+            (COALESCE(hr.oneStarBadge, 0) * 8) +
+            (COALESCE(hr.twoStarBadge, 0) * 16) +
+            (COALESCE(hr.threeStarBadge, 0) * 28) +
+            (COALESCE(hr.fourStarBadge, 0) * 46) +
+            (COALESCE(hr.fiveStarBadge, 0) * 80) +
+            (COALESCE(hr.AdvancedCertifications, 0) * 50) +
+            (COALESCE(hr.IntermediateCertifications, 0) * 30) +
+            (COALESCE(hr.BasicCertifications, 0) * 10)
     ) AS HRC_S,
     (
        ( (COALESCE(lc.EasyProblemSolved, 0) * 1) +
@@ -483,14 +504,14 @@ app.get('/get-all-data',(req,res)=>{
         ((COALESCE(cc.Contests, 0) * 5) +
         (COALESCE(cc.ProblemSolved, 0)) )+
        ( (COALESCE(gfg.Score, 0))) +
-       ( (COALESCE(hr.oneStarBadge, 0) * 1) +
-        (COALESCE(hr.twoStarBadge, 0) * 2) +
-        (COALESCE(hr.threeStarBadge, 0) * 3) +
-        (COALESCE(hr.fourStarBadge, 0) * 4) +
-        (COALESCE(hr.fiveStarBadge, 0) * 5) +
-        (COALESCE(hr.AdvancedCertifications, 0) * 7) +
-        (COALESCE(hr.IntermediateCertifications, 0) * 5) +
-        (COALESCE(hr.BasicCertifications, 0) * 3))
+       ( (COALESCE(hr.oneStarBadge, 0) * 8) +
+        (COALESCE(hr.twoStarBadge, 0) * 16) +
+        (COALESCE(hr.threeStarBadge, 0) * 28) +
+        (COALESCE(hr.fourStarBadge, 0) * 46) +
+        (COALESCE(hr.fiveStarBadge, 0) * 80) +
+        (COALESCE(hr.AdvancedCertifications, 0) * 50) +
+        (COALESCE(hr.IntermediateCertifications, 0) * 30) +
+        (COALESCE(hr.BasicCertifications, 0) * 10))
     ) AS OverallScore,
     RANK() OVER (ORDER BY 
         (
@@ -500,14 +521,14 @@ app.get('/get-all-data',(req,res)=>{
             (COALESCE(cc.Contests, 0) * 5) +
             (COALESCE(cc.ProblemSolved, 0)) +
             (COALESCE(gfg.Score, 0)) +
-            (COALESCE(hr.oneStarBadge, 0) * 1) +
-            (COALESCE(hr.twoStarBadge, 0) * 2) +
-            (COALESCE(hr.threeStarBadge, 0) * 3) +
-            (COALESCE(hr.fourStarBadge, 0) * 4) +
-            (COALESCE(hr.fiveStarBadge, 0) * 5) +
-            (COALESCE(hr.AdvancedCertifications, 0) * 7) +
-            (COALESCE(hr.IntermediateCertifications, 0) * 5) +
-            (COALESCE(hr.BasicCertifications, 0) * 3)
+            (COALESCE(hr.oneStarBadge, 0) * 8) +
+            (COALESCE(hr.twoStarBadge, 0) * 16) +
+            (COALESCE(hr.threeStarBadge, 0) * 28) +
+            (COALESCE(hr.fourStarBadge, 0) * 46) +
+            (COALESCE(hr.fiveStarBadge, 0) * 80) +
+            (COALESCE(hr.AdvancedCertifications, 0) * 50) +
+            (COALESCE(hr.IntermediateCertifications, 0) * 30) +
+            (COALESCE(hr.BasicCertifications, 0) * 10)
         ) DESC
     ) AS rank
         FROM 
@@ -524,15 +545,31 @@ app.get('/get-all-data',(req,res)=>{
             OverallScore DESC;
         `
     )
+}
+
+loader()
+.then((eess)=>{
+    allData.data = eess.rows;
+})
+
+setInterval(()=>{
+    loader()
     .then((eess)=>{
-        res.status(200).json(eess.rows);
+        allData.data = eess.rows;
+    });
+},100000)
+
+app.get("/load",(req,res)=>{
+    loader()
+    .then((eess)=>{
+        allData.data = eess.rows;
     })
     .catch((err)=>{
         console.log(err);
         res.status(500).json(err);
     })
+    res.status(200).json(allData);
 })
-
 // app.get("/put_departments", (req, res) => {
 //     const data = [
 //         {
@@ -1475,7 +1512,39 @@ app.post('/name',(req,res)=>{
     .catch((e4)=>{
         res.status(500).json({'message':e4.message});
     })
-})
+});
+
+app.get('/get_resumes',(req,res)=>{
+    let {department,year} = req.params;
+    if(department===undefined){
+        department = 'TRUE';
+    }
+    if(year===undefined){
+        year = 'TRUE';
+    }
+    turso.execute(`SELECT P.RollNumber,D.Name,D.Department,P.Resume,P.MailAddress
+                        FROM Personal_Info P
+                        JOIN Student_Data D ON P.RollNumber = D.RollNumber 
+                        WHERE P.Resume NOT NULL OR P.MailAddress NOT NULL
+                        ORDER BY P.Resume DESC;`)  
+    .then((result)=>{
+        res.status(200).json(result.rows);
+    })
+    .catch((err)=>{
+        console.log(err);
+        res.status(500);
+    })
+});
+
+// const CalculateRollCharacterstics = (year) => {
+//     const passOut = Number(year.substring(2));
+//     const normal = passOut-4;
+//     const LE = passOut-3;
+//     console.log(String(normal)+'951');
+//     console.log(String(LE)+'955');
+// }
+
+// CalculateRollCharacterstics('2026')
 
 
 app.listen(4300, () => {
